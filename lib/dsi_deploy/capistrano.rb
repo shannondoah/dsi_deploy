@@ -1,19 +1,25 @@
 require 'hiera'
 
-unless fetch(:stage)
-	puts "Auto-set stage"
-	set :stage, :test
-end
+set :branch, -> {
+  `git symbolic-ref --short HEAD`.strip.to_sym
+}
+
+set :stage, -> {
+  {
+    develop: :staging,
+    master: :production
+  }[fetch(:branch)] or fetch(:branch)
+}
+
+set :rails_env, -> {fetch(:stage)}
 
 set :hiera_config, 'hiera.yaml'
 
-set :hiera do
-	Hiera.new(config: fetch(:hiera_config))
-end
+set :hiera, ->{
+  Hiera.new(config: fetch(:hiera_config))
+}
 
-task :default do
-  run_locally do
-  	puts 'deploy info:'
-    puts fetch(:hiera).lookup("deploy")
-  end
-end
+set :deploys, -> {
+  fetch(:hiera).lookup("deploys", nil, {'environment' => fetch(:stage)}, nil, :hash)
+}
+
