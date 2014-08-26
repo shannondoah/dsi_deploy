@@ -1,4 +1,5 @@
 require "dsi_deploy/version"
+require 'base64'
 
 module DSI
   class Deploy
@@ -26,6 +27,9 @@ module DSI
     end
     def region
       @config['region']
+    end
+    def secret
+      Base64.strict_encode64 `echo #{full_name} | openssl rsautl -inkey #{self.ssh_key_file} -sign`
     end
     def ssh_key_file
       File.expand_path(File.join(ssh_keys_path, "#{underscore_name}.pem"))

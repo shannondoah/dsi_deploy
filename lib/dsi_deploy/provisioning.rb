@@ -17,11 +17,12 @@ namespace :dsi do
   desc "Run provsisioning recipe against AWS"
   task :provision, [:puppet_opts, :aws_profile] do |t, args|
     run_locally do
-      env_vars = fetch(:dsi_deploy).
-      env_vars = if args[:aws_profile]
-        {aws_profile: args[:aws_profile]}
-      else
-        {}
+      env_vars = {:FACTER_environment => fetch(:stage)}
+      fetch(:dsi_deploys).each do |deploy|
+        env_vars["FACTER_#{deploy.underscore_name}_deploy_secret"] = deploy.secret
+      end
+      if args[:aws_profile]
+        env_vars[:aws_profile] = args[:aws_profile]
       end
       with env_vars do
         execute( :puppet, :apply, fetch(:provision_file), args[:puppet_opts], *fetch(:puppet_opts))
@@ -42,16 +43,5 @@ namespace :dsi do
         puts "Downloaded deploy key for #{deploy.underscore_name} to #{deploy.ssh_key_file}"
       end
     end
-  end
-end
-
-task :default do
-  fetch(:deploy_config).each do |name, conf|
-    file_path = File.join(fetch(:ssh_keys_path), "#{name}_#{fetch(:stage)}.pem")
-    if File.exists?(file_path)
-      puts "Found at #{file_path}"
-    end
-    puts "File path: #{file_path} #"
-    puts Net::SSH::Config.for("any."+conf['domain'])
   end
 end
