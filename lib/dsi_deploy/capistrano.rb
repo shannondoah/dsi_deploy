@@ -1,4 +1,5 @@
 require 'hiera'
+require 'dsi_deploy'
 
 set :branch, -> {
   `git symbolic-ref --short HEAD`.strip.to_sym
@@ -19,7 +20,13 @@ set :hiera, ->{
   Hiera.new(config: fetch(:hiera_config))
 }
 
-set :deploys, -> {
+set :deploy_config, -> {
   fetch(:hiera).lookup("deploys", nil, {'environment' => fetch(:stage)}, nil, :hash)
+}
+
+set :dsi_deploys, -> {
+  fetch(:deploy_config).map do |name, conf|
+    DSI::Deploy.new(name, conf, self)
+  end
 }
 
