@@ -16,13 +16,16 @@ module DSI
       full_name.gsub('-','_')
     end
     def domain
-      @config[:domain]
+      @config['domain']
     end
     def environment
       @settings.fetch(:environment) or @settings.fetch(:stage)
     end
     def ssh_keys_path
       @settings.fetch(:ssh_keys_path)
+    end
+    def region
+      @config['region']
     end
     def ssh_key_file
       File.expand_path(File.join(ssh_keys_path, "#{underscore_name}.pem"))

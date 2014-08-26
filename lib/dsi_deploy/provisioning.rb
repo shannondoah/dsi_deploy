@@ -30,11 +30,11 @@ namespace :dsi do
   end
 
   desc "Generate a key pair for each configured deploy and download them."
-  task :generate_keys, [:region] do |t, args|
+  task :generate_keys do
     run_locally do
-      ec2 = AWS::EC2.new(:region=>args[:region])
+      ec2 = AWS::EC2.new
       fetch(:dsi_deploys).each do |deploy|
-        pair = ec2.key_pairs.create(deploy.underscore_name)
+        pair = ec2.regions[deploy.region].key_pairs.create(deploy.underscore_name)
         File.open(deploy.ssh_key_file, 'w') do |file|
           file.write(pair.private_key)
         end
