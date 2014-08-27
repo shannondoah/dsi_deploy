@@ -1,7 +1,9 @@
 require 'dsi_deploy/capistrano'
 require 'aws-sdk'
 
-SSHKit.config.command_map[:puppet] = 'puppet'
+
+# SSHKit.config.output_verbosity=Logger::DEBUG
+
 
 set :puppet_opts, -> {[
   "--modulepath=dev:modules",
@@ -25,7 +27,7 @@ namespace :dsi do
         env_vars[:aws_profile] = args[:aws_profile]
       end
       with env_vars do
-        execute( :puppet, :apply, fetch(:provision_file), args[:puppet_opts], *fetch(:puppet_opts))
+        puts capture( :puppet, :apply, fetch(:provision_file), args[:puppet_opts], *fetch(:puppet_opts))
       end
     end
   end
