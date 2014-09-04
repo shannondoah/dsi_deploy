@@ -1,34 +1,34 @@
 require 'hiera'
 require 'dsi_deploy'
 
-def dsi_parse_git_hostname(uri)
-  URI.parse(uri).hostname
-rescue URI::InvalidURIError
-  # git@...:  type url, or so we hope
-  uri[/\@(.*?):/, 1] or raise
-end
+require 'dsi_deploy/automagic'
+
+
 
 set :branch, -> {
   `git symbolic-ref --short HEAD`.strip.to_sym
 }
 
-set :stage, -> {
-  {
-    develop: :staging,
-    master: :production
-  }[fetch(:branch)] or fetch(:branch)
-}
-
 set :rails_env, -> {fetch(:stage)}
+set :environment, -> {fetch(:stage)}
 
 set :hiera_config, 'hiera.yaml'
 
+set :branch_mapping,  {
+  develop: :staging,
+  master: :production
+}
+
 set :hiera, ->{
-  Hiera.new(config: fetch(:hiera_config))
+  Hiera.new(config: fetch(:hiera_config)) if File.exists?(fetch(:hiera_config))
 }
 
 set :deploy_config, -> {
-  fetch(:hiera).lookup("deploys", nil, {'environment' => fetch(:stage)}, nil, :hash)
+  if fetch(:hiera)
+    fetch(:hiera).lookup("deploys", nil, {'environment' => fetch(:environment)}, nil, :hash)
+  else
+    {fetch(:application) => {"domain" => fetch(:domain)}}
+  end
 }
 
 set :dsi_deploys, -> {
@@ -36,11 +36,3 @@ set :dsi_deploys, -> {
     DSI::Deploy.new(name, conf, self)
   end
 }
-
-
-
-fetch(:dsi_deploys).each do |deploy|
-  deploy.nodes.each do |node|
-    server node.hostname, roles: node.roles, node: node
-  end
-end

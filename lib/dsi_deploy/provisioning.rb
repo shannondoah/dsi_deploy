@@ -30,7 +30,11 @@ namespace :dsi do
         env_vars[:aws_profile] = args[:aws_profile]
       end
       with env_vars do
-        puts capture( :puppet, :apply, fetch(:provision_file), args[:puppet_opts], *fetch(:puppet_opts))
+        # execute w/ stdout streaming is broken with run_locally...
+        cmd  = [:puppet, :apply, fetch(:provision_file), args[:puppet_opts], *fetch(:puppet_opts)].join(' ')
+        cmd = env_vars.map{|k,v| "#{k.upcase}=#{v}" }.join(' ') + ' ' + cmd
+        puts "Exec: #{cmd}"
+        exec( cmd )
       end
     end
   end
@@ -56,9 +60,7 @@ namespace :dsi do
     opts = args.to_hash
     run_locally do
       opts[:giturl] ||= capture :git, :config, 'remote.origin.url'
-      puts opts[:giturl].inspect
       opts[:githost] ||= dsi_parse_git_hostname(opts[:giturl])
-      puts opts[:githost].inspect
       opts[:gitident] ||= capture(:'ssh-keyscan', '-H', opts[:githost])
     end
 

@@ -9,7 +9,11 @@ class DSI::Deploy::Node
     deploy.domain
   end
   def hostname
-    "#{role}%02d.#{domain}" % index
+    deploy.hosts_pattern % {
+      domain: domain,
+      role: role,
+      index: index
+    }
   end
   def roles
     roles = [@role]
