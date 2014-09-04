@@ -93,6 +93,7 @@ CONF
     on roles(:all) do
       within '/etc/puppet' do
         execute :git, :pull
+        execute :bundle
       end
     end
   end
