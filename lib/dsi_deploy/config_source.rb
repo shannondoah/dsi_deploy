@@ -18,11 +18,11 @@ class DSI::Deploy::ConfigSource
     # TODO: turn into some sort of lazy lookup
     {
       'db' => {
-        'password' => @settings.db.password || self.db_password,
-        'host' => @settings.db.host || self.service(:db).target,
+        'password' => @settings.try(:db).try(:password) || self.db_password,
+        'host' => @settings.try(:db).try(:host) || self.service(:db).target,
       },
       'redis' => {
-        'url' => @settings.redis.url || "redis://#{self.service(:redis).target}:#{self.service(:redis).port}"
+        'url' => @settings.try(:redis).try(:url) || "redis://#{self.service(:redis).target}:#{self.service(:redis).port}"
       }
     }
   end
