@@ -1,6 +1,13 @@
 require 'hiera'
 require 'dsi_deploy'
 
+def dsi_parse_git_hostname(uri)
+  URI.parse(uri).hostname
+rescue URI::InvalidURIError
+  # git@...:  type url, or so we hope
+  uri[/\@(.*?):/, 1] or raise
+end
+
 set :branch, -> {
   `git symbolic-ref --short HEAD`.strip.to_sym
 }
@@ -30,3 +37,10 @@ set :dsi_deploys, -> {
   end
 }
 
+
+
+fetch(:dsi_deploys).each do |deploy|
+  deploy.nodes.each do |node|
+    server node.hostname, roles: node.roles, node: node
+  end
+end

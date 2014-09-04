@@ -1,5 +1,5 @@
 module DSI
-  module Deploy
-    VERSION = "0.0.2"
+  class Deploy
+    VERSION = "0.0.3"
   end
 end

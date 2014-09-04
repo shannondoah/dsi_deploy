@@ -2,7 +2,7 @@ require 'dsi_deploy/capistrano'
 require 'aws-sdk'
 
 
-# SSHKit.config.output_verbosity=Logger::DEBUG
+SSHKit.config.output_verbosity=Logger::DEBUG
 
 
 set :puppet_opts, -> {[
@@ -14,6 +14,7 @@ set :puppet_opts, -> {[
 set :provision_file, "manifests/provisioning.pp"
 
 set :ssh_keys_path, "~/.ssh"
+
 
 namespace :dsi do
   desc "Run provsisioning recipe against AWS"
@@ -46,4 +47,51 @@ namespace :dsi do
       end
     end
   end
+
+
+  desc "One-time setup for new nodes."
+  task :setup , [:giturl, :githost, :gitident] do  |t, args|
+    opts = args.to_hash
+    run_locally do
+      opts[:giturl] ||= capture :git, :config, 'remote.origin.url'
+      puts opts[:giturl].inspect
+      opts[:githost] ||= dsi_parse_git_hostname(opts[:giturl])
+      puts opts[:githost].inspect
+      opts[:gitident] ||= capture(:'ssh-keyscan', '-H', opts[:githost])
+    end
+
+    on roles(:all) do |server|
+      node =  server.properties.node
+      sudo :hostname, node.hostname
+      sudo :sh, '-c', "'echo #{node.hostname} > /etc/hostname'"
+      sudo :'apt-get', :install, '-y', 'git', 'puppet-common'
+      unless test "[ -d /etc/puppet/.git ]"
+        if test "[ -d /etc/puppet ]"
+          sudo :mv, '/etc/puppet', '/etc/puppet.orig'
+        end
+        sudo :mkdir, '/etc/puppet'
+        me = capture(:whoami)
+        sudo :chown, me, '/etc/puppet'
+        execute "echo '#{opts[:gitident]}' >> ~/.ssh/known_hosts"
+        execute :git, :clone, '-b', fetch(:branch), opts[:giturl] ,'/etc/puppet'
+      end
+      s = StringIO.new <<-CONF
+[main]
+environment=#{fetch(:rails_env)}
+CONF
+      upload! s, '/etc/puppet/puppet.conf'
+    end
+  end
+
+  desc "Pull puppet repo remotely"
+  task :pull do
+    on roles(:all) do
+      within '/etc/puppet' do
+        execute :git, :pull
+      end
+    end
+
+  end
+
+  after :setup, :pull
 end

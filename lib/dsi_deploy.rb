@@ -39,6 +39,32 @@ module DSI
         return dns.getresources "#{subdomain}.#{domain}", Resolv::DNS::Resource::IN.const_get(record_type)
       end
     end
+    def node_counts
+      @node_counts ||= Hash[self.dns_lookup(:TXT, '_nodes').map{|record|
+        role, count = record.data.split('=')
+        [role.to_sym, count.to_i]
+      }]
+    end
+
+    def migrator_role
+      :worker
+    end
+
+    def nodes(role_filter=nil)
+      if role_filter
+        1.upto(node_counts[role_filter]).map do |index|
+           DSI::Deploy::Node.new(self, role_filter, index)
+        end
+      else
+        node_counts.map do |role, counts|
+          1.upto(counts).map do |index|
+            DSI::Deploy::Node.new(self, role, index)
+          end
+        end.flatten
+      end
+    end
+
   end
 end
 
+require "dsi_deploy/node"
