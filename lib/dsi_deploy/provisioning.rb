@@ -13,6 +13,8 @@ set :puppet_opts, -> {[
 
 set :provision_file, "manifests/provisioning.pp"
 
+set :node_manifest, '/etc/puppet/manifests/site.pp'
+
 set :ssh_keys_path, "~/.ssh"
 
 
@@ -83,6 +85,7 @@ CONF
     end
   end
 
+
   desc "Pull puppet repo remotely"
   task :pull do
     on roles(:all) do
@@ -90,8 +93,17 @@ CONF
         execute :git, :pull
       end
     end
+  end
+  after :setup, :pull
 
+  desc "Apply local puppet manifest"
+  task :apply do
+    on roles(:all) do
+      within '/etc/puppet' do
+        sudo :puppet, :apply, '--modulepath=modules', fetch(:node_manifest)
+      end
+    end
   end
 
-  after :setup, :pull
+
 end
