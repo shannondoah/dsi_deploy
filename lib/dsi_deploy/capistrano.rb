@@ -3,11 +3,12 @@ require 'dsi_deploy'
 
 require 'dsi_deploy/automagic'
 
-
-
-set :branch, -> {
+set :current_branch, -> {
   `git symbolic-ref --short HEAD`.strip.to_sym
 }
+set :branch, fetch(:current_branch) # this will get overwritten by load:defaults
+
+set :stage, -> {(fetch(:branch_mapping)[fetch(:branch)] || fetch(:branch))}
 
 set :rails_env, -> {fetch(:stage)}
 set :environment, -> {fetch(:stage)}

@@ -6,6 +6,9 @@ class <<DSI::Deploy
     if Rake::Task.task_defined?(fetch(:stage))
       DSI.log "Auto-set stage to #{fetch(:stage)} based on branch #{fetch(:stage)}"
       before 'ensure_stage', fetch(:stage)
+      after 'load:defaults', 'fix-branch-var' do
+        set :branch, fetch(:current_branch)
+      end
     else
       DSI.warn "Stage was set to #{fetch(:stage)} based on branch #{fetch(:stage)}, but no stage task was defined."
     end
