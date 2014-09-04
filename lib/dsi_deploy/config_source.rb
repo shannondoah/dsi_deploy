@@ -10,17 +10,19 @@ class DSI::Deploy::ConfigSource
     config[:environment] ||= Rails.env
     config[:domain] ||= (Settings[:hostname] || Settings[:host])
     @deploy = DSI::Deploy.new(name, config)
+    # TODO: find a better way to be LOWEST priority source
+    @settings = settings
   end
   # This is the only interface rails_config expects -s hould return a Hash-like
   def load
     # TODO: turn into some sort of lazy lookup
     {
       'db' => {
-        'password' => self.db_password,
-        'host' => self.service(:db).target,
+        'password' => @settings.db.password || self.db_password,
+        'host' => @settings.db.host || self.service(:db).target,
       },
       'redis' => {
-        'url' => "redis://#{self.service(:redis).target}:#{self.service(:redis).port}"
+        'url' => @settings.redis.url || "redis://#{self.service(:redis).target}:#{self.service(:redis).port}"
       }
     }
   end
