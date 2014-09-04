@@ -48,13 +48,14 @@ namespace :web do
       end
     end
   end
-
-  after 'deploy:finished', 'web:start-or-reload' do
-    on roles(:web) do
-      if capture(:sudo, :service, fetch(:application), :status) =~ /\w+\/running/
-        execute :sudo, :service, fetch(:application), :reload
-      else
-        execute :sudo, :service, fetch(:application), :start
+  if Rake::Task.task_defined? 'deploy:finished'
+    after 'deploy:finished', 'web:start-or-reload' do
+      on roles(:web) do
+        if capture(:sudo, :service, fetch(:application), :status) =~ /\w+\/running/
+          execute :sudo, :service, fetch(:application), :reload
+        else
+          execute :sudo, :service, fetch(:application), :start
+        end
       end
     end
   end
@@ -69,13 +70,14 @@ namespace :workers do
       end
     end
   end
-
-  after 'deploy:finished', 'workers:start-or-restart' do
-    on roles(:worker) do
-      if test :sudo, :service, "#{fetch(:application)}-workers", :status
-        execute :sudo, :service, "#{fetch(:application)}-workers", :restart
-      else
-        execute :sudo, :service, "#{fetch(:application)}-workers", :start
+  if Rake::Task.task_defined? 'deploy:finished'
+    after 'deploy:finished', 'workers:start-or-restart' do
+      on roles(:worker) do
+        if test :sudo, :service, "#{fetch(:application)}-workers", :status
+          execute :sudo, :service, "#{fetch(:application)}-workers", :restart
+        else
+          execute :sudo, :service, "#{fetch(:application)}-workers", :start
+        end
       end
     end
   end
