@@ -70,7 +70,7 @@ namespace :dsi do
     opts = args.to_hash
     run_locally do
       opts[:giturl] ||= capture :git, :config, 'remote.origin.url'
-      opts[:githost] ||= dsi_parse_git_hostname(opts[:giturl])
+      opts[:githost] ||= DSI.parse_git_hostname(opts[:giturl])
       opts[:gitident] ||= capture(:'ssh-keyscan', '-H', opts[:githost])
     end
 
