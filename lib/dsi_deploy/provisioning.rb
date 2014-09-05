@@ -39,6 +39,16 @@ namespace :dsi do
     end
   end
 
+  desc "Query or set an AWS resource"
+  task :resource, [:resource, :title] do |t, args|
+    run_locally do
+      env_vars = {:FACTER_environment => fetch(:stage)}
+      with env_vars do
+        execute :puppet, :resource, args[:resource], args[:title], *fetch(:puppet_opts)
+      end
+    end
+  end
+
   desc "Generate a key pair for each configured deploy and download them."
   task :generate_keys do
     run_locally do
