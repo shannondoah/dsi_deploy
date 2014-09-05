@@ -13,7 +13,7 @@ class DSI::Deploy::ConfigSource
     # TODO: find a better way to be LOWEST priority source
     @settings = settings
   end
-  # This is the only interface rails_config expects -s hould return a Hash-like
+  # This is the only interface rails_config expects - should return a Hash-like
   def load
     # TODO: turn into some sort of lazy lookup
     {
