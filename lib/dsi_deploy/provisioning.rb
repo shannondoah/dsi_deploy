@@ -6,7 +6,7 @@ SSHKit.config.output_verbosity=Logger::DEBUG
 
 
 set :puppet_opts, -> {[
-  "--modulepath=dev:modules",
+  "--modulepath=modules",
   "--parser=future",
   "--hiera_config=#{fetch(:hiera_config)}",
 ]}
