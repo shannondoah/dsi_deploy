@@ -79,6 +79,7 @@ namespace :dsi do
       sudo :hostname, node.hostname
       sudo :sh, '-c', "'echo #{node.hostname} > /etc/hostname'"
       sudo :'apt-get', :install, '-y', 'git', 'puppet-common'
+      sudo :gem, :install, :deep_merge
       unless test "[ -d /etc/puppet/.git ]"
         if test "[ -d /etc/puppet ]"
           sudo :mv, '/etc/puppet', '/etc/puppet.orig'
