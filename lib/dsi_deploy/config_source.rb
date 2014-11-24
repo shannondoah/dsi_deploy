@@ -27,6 +27,7 @@ class DSI::Deploy::ConfigSource
         'url' => @settings.try(:redis).try(:url) || "redis://#{self.service(:redis).target}:#{self.service(:redis).port}"
       }
     end
+    config
   end
   EC2_METADATA_URI = URI('http://169.254.169.254/latest/user-data')
   def user_data
