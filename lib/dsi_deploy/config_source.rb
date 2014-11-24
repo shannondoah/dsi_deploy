@@ -16,15 +16,17 @@ class DSI::Deploy::ConfigSource
   # This is the only interface rails_config expects - should return a Hash-like
   def load
     # TODO: turn into some sort of lazy lookup
-    {
+    config = {
       'db' => {
         'password' => @settings.try(:db).try(:password) || self.db_password,
         'host' => @settings.try(:db).try(:host) || self.service(:db).target,
-      },
-      'redis' => {
-        'url' => @settings.try(:redis).try(:url) || "redis://#{self.service(:redis).target}:#{self.service(:redis).port}"
       }
     }
+    if config[:redis]
+      config['redis'] = {
+        'url' => @settings.try(:redis).try(:url) || "redis://#{self.service(:redis).target}:#{self.service(:redis).port}"
+      }
+    end
   end
   EC2_METADATA_URI = URI('http://169.254.169.254/latest/user-data')
   def user_data
