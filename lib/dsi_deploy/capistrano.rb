@@ -1,5 +1,6 @@
 require 'hiera'
 require 'dsi_deploy'
+require 'sshkit'
 
 require 'dsi_deploy/automagic'
 
