@@ -1,7 +1,5 @@
 require 'dsi_deploy/capistrano'
 require 'aws-sdk'
-require 'sshkit'
-include SSHKit::DSL
 
 SSHKit.config.output_verbosity=Logger::DEBUG
 

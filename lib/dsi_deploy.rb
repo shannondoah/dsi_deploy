@@ -1,5 +1,6 @@
 require "dsi_deploy/version"
 require 'base64'
+require 'sshkit'
 
 module DSI
   class <<self
@@ -23,6 +24,7 @@ module DSI
   end
 
   class Deploy
+    include SSHKit::DSL
   end
 end
 
